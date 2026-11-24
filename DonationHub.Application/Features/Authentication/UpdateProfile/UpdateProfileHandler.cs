@@ -1,5 +1,6 @@
 ﻿using DonationHub.Application.Dtos;
 using DonationHub.Application.Interfaces;
+using DonationHub.Domain.Common.Results;
 using MediatR;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -8,7 +9,7 @@ using System.Text;
 
 namespace DonationHub.Application.Features.Authentication.UpdateProfile
 {
-    internal class UpdateProfileHandler : IRequestHandler<UpdateProfileCommand, UserDataDto>
+    internal class UpdateProfileHandler : IRequestHandler<UpdateProfileCommand, Result<UserDataDto>>
     {
         private readonly IIdentityService _identityService;
 
@@ -17,10 +18,10 @@ namespace DonationHub.Application.Features.Authentication.UpdateProfile
             _identityService = identityService;
         }
 
-        public async Task<UserDataDto> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
+        public async Task<Result<UserDataDto>> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
         {
             var result = await _identityService.UpdateProfileAsync(request.Email, request.FullName, request.PreferredLanguage, cancellationToken);
-            if (result is null) throw new UnauthorizedAccessException();
+            //if (!result.IsSuccess) return result.Error!;
             return result;
 
         }

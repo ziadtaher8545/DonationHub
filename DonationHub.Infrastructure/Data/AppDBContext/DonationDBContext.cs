@@ -1,4 +1,5 @@
-﻿using DonationHub.Domain.Entities;
+﻿using DonationHub.Application.Interfaces;
+using DonationHub.Domain.Entities;
 using DonationHub.Infrastructure.Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -10,7 +11,7 @@ using System.Text;
 
 namespace DonationHub.Infrastructure.Data.AppDBContext
 {
-    public class DonationDBContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
+    public class DonationDBContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>, IDonationDbContext
     {
         public DonationDBContext(DbContextOptions<DonationDBContext> options) : base(options)
         {

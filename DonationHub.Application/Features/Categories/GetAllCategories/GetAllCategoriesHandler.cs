@@ -1,24 +1,28 @@
 ﻿using DonationHub.Application.Dtos;
 using DonationHub.Application.Interfaces;
+using DonationHub.Domain.Common.Results;
 using DonationHub.Domain.Entities;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace DonationHub.Application.Features.Categories.GetAllCategories
 {
-    internal class GetAllCategoriesHandler : IRequestHandler<GetAllCategoriesQuery, List<CategoryDto>>
+    internal class GetAllCategoriesHandler : IRequestHandler<GetAllCategoriesQuery, Result<List<CategoryDto>>>
     {
 
-        private readonly IGenericRepsitory<Category> _categoryRepository;
+        private readonly IDonationDbContext _context;
 
-        public GetAllCategoriesHandler(IGenericRepsitory<Category> categoryRepository)
+        public GetAllCategoriesHandler(IDonationDbContext context)
         {
-            _categoryRepository = categoryRepository;
+
+            _context = context;
         }
 
 
-        public async Task<List<CategoryDto>> Handle(GetAllCategoriesQuery request, CancellationToken cancellationToken)
+        public async Task<Result<List<CategoryDto>>> Handle(GetAllCategoriesQuery request, CancellationToken cancellationToken)
         {
-            var categories = await _categoryRepository.GetAllAsync(cancellationToken);
+            var categories = await _context.Categories.AsNoTracking().ToListAsync();
+
             return categories.Select(c => new CategoryDto
             {
                 Id = c.Id,

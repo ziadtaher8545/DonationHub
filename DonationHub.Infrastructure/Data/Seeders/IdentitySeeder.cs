@@ -15,19 +15,23 @@ namespace DonationHub.Infrastructure.Data.Seeders
 {
     internal class IdentitySeeder : IDataSeeder
     {
-        private readonly IOptions<SeedAdminOptions> _options;
+        private readonly SeedAdminOptions _adminOptions;
+        private readonly SeedDonorOptions _donorOptions;
+        private readonly SeedAdminOptions _managerOptions;
         private readonly DonationDBContext _context;
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<IdentitySeeder> _logger;
 
-        public IdentitySeeder(IOptions<SeedAdminOptions> options, DonationDBContext context, RoleManager<IdentityRole<Guid>> roleManager, UserManager<ApplicationUser> userManager, ILogger<IdentitySeeder> logger)
+        public IdentitySeeder(IOptions<SeedAdminOptions> options, DonationDBContext context, RoleManager<IdentityRole<Guid>> roleManager, UserManager<ApplicationUser> userManager, ILogger<IdentitySeeder> logger, IOptions<SeedDonorOptions> donoroptions, IOptions<SeedAdminOptions> manageroptions)
         {
-            _options = options;
+            _adminOptions = options.Value;
             _context = context;
             _roleManager = roleManager;
             _userManager = userManager;
             _logger = logger;
+            _donorOptions = donoroptions.Value;
+            _managerOptions = manageroptions.Value;
         }
 
 
@@ -51,9 +55,8 @@ namespace DonationHub.Infrastructure.Data.Seeders
                 if (!await _userManager.Users.AnyAsync(cancellationToken: ct))
                 {
                     // admin
-                    var adminOptions = _options.Value;
-                    var adminUser = ApplicationUser.Create(adminOptions.FullName, adminOptions.Email, "ZiadTaher");
-                    var result = await _userManager.CreateAsync(adminUser, adminOptions.Password);
+                    var adminUser = ApplicationUser.Create(_adminOptions.FullName, _adminOptions.Email, _adminOptions.Email);
+                    var result = await _userManager.CreateAsync(adminUser, _adminOptions.Password);
                     if (result.Succeeded)
                         await _userManager.AddToRoleAsync(adminUser, "Admin");
                     else
@@ -62,9 +65,9 @@ namespace DonationHub.Infrastructure.Data.Seeders
 
 
                     // campaign manager
-                    var managerUser = ApplicationUser.Create("Campaign Manager", "manager@gmail.com", "campaignmanager");
+                    var managerUser = ApplicationUser.Create(_managerOptions.FullName, _managerOptions.Email, _managerOptions.Email);
 
-                    var managerResult = await _userManager.CreateAsync(managerUser, "P@ssw0rd");
+                    var managerResult = await _userManager.CreateAsync(managerUser, _managerOptions.Password);
                     if (managerResult.Succeeded)
                         await _userManager.AddToRoleAsync(managerUser, "CampaignManager");
                     else
@@ -73,9 +76,9 @@ namespace DonationHub.Infrastructure.Data.Seeders
 
 
                     // Donor
-                    var donorUser = ApplicationUser.Create("Donor User", "donor@gmail.com", "DonorUser");
+                    var donorUser = ApplicationUser.Create(_donorOptions.FullName, _donorOptions.Email, _donorOptions.Email);
 
-                    var donorResult = await _userManager.CreateAsync(donorUser, "P@ssw0rd");
+                    var donorResult = await _userManager.CreateAsync(donorUser, _donorOptions.Password);
                     if (donorResult.Succeeded)
                         await _userManager.AddToRoleAsync(donorUser, "Donor");
                     else

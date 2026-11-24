@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DonationHub.Application.Features.Categories.UpdateCategory
 {
-    internal class UpdateCateogryValidator : AbstractValidator<UpdateCategoryCommand>
+    public class UpdateCateogryValidator : AbstractValidator<UpdateCategoryCommand>
     {
         public UpdateCateogryValidator()
         {
@@ -16,11 +16,12 @@ namespace DonationHub.Application.Features.Categories.UpdateCategory
                 .NotEmpty().WithMessage("Name (English) is required.")
                 .MaximumLength(100).WithMessage("Name (English) must not exceed 100 characters.");
             RuleFor(x => x.Description.DescriptionAr)
-                .Empty()
-                .MaximumLength(500).WithMessage("Description (Arabic) is required.");
+                 .MaximumLength(500)
+                 .When(x => !string.IsNullOrWhiteSpace(x.Description.DescriptionAr));
+
             RuleFor(x => x.Description.DescriptionEn)
-                .Empty()
-                .MaximumLength(500).WithMessage("Description (English) is required.");
+                .MaximumLength(500)
+                .When(x => !string.IsNullOrWhiteSpace(x.Description.DescriptionEn));
 
         }
     }

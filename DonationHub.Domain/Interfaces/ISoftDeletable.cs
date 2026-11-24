@@ -9,10 +9,10 @@ namespace DonationHub.Domain.Interfaces
         public bool IsDeleted { get; protected set; }
         public DateTimeOffset? DeletedAt { get; protected set; }
 
-        public void Delete()
+        public void Delete(DateTimeOffset now)
         {
             IsDeleted = true;
-            DeletedAt = DateTimeOffset.UtcNow;
+            DeletedAt = now;
         }
 
         public void Restore()

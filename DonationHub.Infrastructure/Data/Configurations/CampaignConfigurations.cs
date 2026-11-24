@@ -12,7 +12,7 @@ namespace DonationHub.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Campaign> builder)
         {
-            builder.OwnsOne(c => c.Titlle, title =>
+            builder.OwnsOne(c => c.Title, title =>
             {
                 title.Property(t => t.TitleAr).HasColumnName("TitleAr").HasMaxLength(100).IsRequired();
                 title.Property(t => t.TitleEn).HasColumnName("TitleEn").HasMaxLength(100).IsRequired();
@@ -44,14 +44,12 @@ namespace DonationHub.Infrastructure.Data.Configurations
             });
 
 
-            builder.HasOne(c => c.Category).WithMany().HasForeignKey(c => c.CategoryId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(c => c.Category).WithMany(c => c.Campaigns).HasForeignKey(c => c.CategoryId).OnDelete(DeleteBehavior.Restrict);
             builder.Property(c => c.IsDeleted).HasDefaultValue(false);
             builder.HasQueryFilter(c => !c.IsDeleted);
 
 
-            builder.Property(c => c.RowVersion)
-           .IsRowVersion()
-           .IsConcurrencyToken();
+            builder.Property(c => c.RowVersion).IsRowVersion().IsConcurrencyToken();
 
             builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(c => c.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
 

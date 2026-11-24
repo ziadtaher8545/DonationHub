@@ -35,9 +35,6 @@ namespace DonationHub.Infrastructure.Data.Migrations
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("CategoryId1")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetimeoffset")
@@ -73,8 +70,6 @@ namespace DonationHub.Infrastructure.Data.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("CategoryId1");
-
                     b.HasIndex("CreatedByUserId");
 
                     b.ToTable("Campaigns");
@@ -90,6 +85,14 @@ namespace DonationHub.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetimeoffset")
                         .HasDefaultValueSql("TODATETIMEOFFSET(Sysutcdatetime(), '+00:00')");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
@@ -186,11 +189,7 @@ namespace DonationHub.Infrastructure.Data.Migrations
                         .HasColumnType("datetimeoffset")
                         .HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
 
-                    b.Property<string>("DonationId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("DonationId1")
+                    b.Property<Guid>("DonationId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("FailureCode")
@@ -211,7 +210,7 @@ namespace DonationHub.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DonationId1");
+                    b.HasIndex("DonationId");
 
                     b.ToTable("PaymentAttempts");
                 });
@@ -252,6 +251,9 @@ namespace DonationHub.Infrastructure.Data.Migrations
 
                     b.Property<DateTimeOffset>("ExpiredAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("ReplaceByTokenId")
                         .HasColumnType("uniqueidentifier");
@@ -487,14 +489,10 @@ namespace DonationHub.Infrastructure.Data.Migrations
             modelBuilder.Entity("DonationHub.Domain.Entities.Campaign", b =>
                 {
                     b.HasOne("DonationHub.Domain.Entities.Category", "Category")
-                        .WithMany()
+                        .WithMany("Campaigns")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("DonationHub.Domain.Entities.Category", null)
-                        .WithMany("Campaigns")
-                        .HasForeignKey("CategoryId1");
 
                     b.HasOne("DonationHub.Infrastructure.Data.Entities.ApplicationUser", null)
                         .WithMany()
@@ -573,7 +571,7 @@ namespace DonationHub.Infrastructure.Data.Migrations
                                 .HasForeignKey("CampaignId");
                         });
 
-                    b.OwnsOne("DonationHub.Domain.ValueObjects.Title", "Titlle", b1 =>
+                    b.OwnsOne("DonationHub.Domain.ValueObjects.Title", "Title", b1 =>
                         {
                             b1.Property<Guid>("CampaignId")
                                 .HasColumnType("uniqueidentifier");
@@ -608,7 +606,7 @@ namespace DonationHub.Infrastructure.Data.Migrations
                     b.Navigation("RaiseAmount")
                         .IsRequired();
 
-                    b.Navigation("Titlle")
+                    b.Navigation("Title")
                         .IsRequired();
                 });
 
@@ -647,17 +645,24 @@ namespace DonationHub.Infrastructure.Data.Migrations
                             b1.Property<string>("NameAr")
                                 .IsRequired()
                                 .HasMaxLength(100)
-                                .HasColumnType("nvarchar(100)");
+                                .HasColumnType("nvarchar(100)")
+                                .HasColumnName("NameAr");
 
                             b1.Property<string>("NameEn")
                                 .IsRequired()
                                 .HasMaxLength(100)
-                                .HasColumnType("nvarchar(100)");
+                                .HasColumnType("nvarchar(100)")
+                                .HasColumnName("NameEn");
 
                             b1.HasKey("CategoryId");
 
-                            b1.HasIndex("NameAr", "NameEn")
-                                .IsUnique();
+                            b1.HasIndex("NameAr")
+                                .IsUnique()
+                                .HasFilter("[IsDeleted] = 0");
+
+                            b1.HasIndex("NameEn")
+                                .IsUnique()
+                                .HasFilter("[IsDeleted] = 0");
 
                             b1.ToTable("Categories");
 
@@ -674,13 +679,13 @@ namespace DonationHub.Infrastructure.Data.Migrations
             modelBuilder.Entity("DonationHub.Domain.Entities.Donation", b =>
                 {
                     b.HasOne("DonationHub.Domain.Entities.Campaign", "Campaign")
-                        .WithMany()
+                        .WithMany("Donations")
                         .HasForeignKey("CampaignId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("DonationHub.Infrastructure.Data.Entities.ApplicationUser", null)
-                        .WithMany()
+                        .WithMany("Donations")
                         .HasForeignKey("DonorUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -716,8 +721,8 @@ namespace DonationHub.Infrastructure.Data.Migrations
                 {
                     b.HasOne("DonationHub.Domain.Entities.Donation", "Donation")
                         .WithMany()
-                        .HasForeignKey("DonationId1")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("DonationId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Donation");
@@ -783,9 +788,19 @@ namespace DonationHub.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("DonationHub.Domain.Entities.Campaign", b =>
+                {
+                    b.Navigation("Donations");
+                });
+
             modelBuilder.Entity("DonationHub.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Campaigns");
+                });
+
+            modelBuilder.Entity("DonationHub.Infrastructure.Data.Entities.ApplicationUser", b =>
+                {
+                    b.Navigation("Donations");
                 });
 #pragma warning restore 612, 618
         }

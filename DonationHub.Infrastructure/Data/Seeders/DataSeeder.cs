@@ -35,11 +35,11 @@ namespace DonationHub.Infrastructure.Data.Seeders
                 // categories
                 var categories = new[]
                    {
-                    Category.Create(new Name  ("Health",      "الصحة")),
-                    Category.Create(new Name(  "Education",   "التعليم")),
-                    Category.Create(new Name ( "Relief", "الإغاثة")),
-                    Category.Create(new Name( "Orphans",     "الأيتام")),
-                    Category.Create(new  Name( "Environment", "البيئة" ))
+                    Category.Create(new Name  ("الصحة","Health")),
+                    Category.Create(new Name("التعليم" ,"Education")),
+                    Category.Create(new Name ( "الإغاثة", "Relief")),
+                    Category.Create(new Name(    "الأيتام","Orphans")),
+                    Category.Create(new  Name(  "البيئة","Environment" ))
                 };
 
                 await _context.AddRangeAsync(categories);

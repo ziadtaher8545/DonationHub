@@ -1,9 +1,10 @@
-﻿using MediatR;
+﻿using DonationHub.Domain.Common.Results;
+using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace DonationHub.Application.Features.Categories.DeleteCategory
 {
-    public record DeleteCategoryCommand(Guid Id) : IRequest<bool>;
+    public record DeleteCategoryCommand(Guid Id) : IRequest<Result>;
 }

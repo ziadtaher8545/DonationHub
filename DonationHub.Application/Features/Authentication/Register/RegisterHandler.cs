@@ -1,10 +1,12 @@
 ﻿using DonationHub.Application.Interfaces;
+using DonationHub.Domain.Common.Errors;
+using DonationHub.Domain.Common.Results;
 using FluentValidation;
 using MediatR;
 
 namespace DonationHub.Application.Features.Authentication.Register
 {
-    internal class RegisterHandler : IRequestHandler<RegisterCommand, bool>
+    internal class RegisterHandler : IRequestHandler<RegisterCommand, Result>
     {
         private readonly IIdentityService _identityService;
         private readonly IValidator<RegisterCommand> _validator;
@@ -15,15 +17,15 @@ namespace DonationHub.Application.Features.Authentication.Register
             _validator = validator;
         }
 
-        public async Task<bool> Handle(RegisterCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(RegisterCommand request, CancellationToken cancellationToken)
         {
 
-            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
-            if (!validationResult.IsValid)
-            {
-                // should return result 
-                throw new ValidationException(validationResult.Errors);
-            }
+            //var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+            //if (!validationResult.IsValid)
+            //{
+            //    // should return result 
+            //    return AuthErrors.InvalidCredentials;
+            //}
             return await _identityService.CreateUserAsync(request);
 
 

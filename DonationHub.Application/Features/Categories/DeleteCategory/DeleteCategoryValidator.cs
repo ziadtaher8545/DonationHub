@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DonationHub.Application.Features.Categories.DeleteCategory
 {
-    internal class DeleteCategoryValidator : AbstractValidator<DeleteCategoryCommand>
+    public class DeleteCategoryValidator : AbstractValidator<DeleteCategoryCommand>
     {
         public DeleteCategoryValidator()
         {

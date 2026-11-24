@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DonationHub.Application.Features.Categories.CreateCategory
 {
-    internal class CreateCategoryValidator : AbstractValidator<CreateCategoryCommand>
+    public class CreateCategoryValidator : AbstractValidator<CreateCategoryCommand>
     {
         public CreateCategoryValidator()
         {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DonationHub.Domain.Common.Errors;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -20,8 +21,8 @@ namespace DonationHub.Domain.Entities
 
         public static IdempotencyRecord Create(Guid userId, string requestHash, int? responseStatusCode, string? responseBody, DateTimeOffset endDate)
         {
-            if (endDate <= DateTimeOffset.UtcNow)
-                throw new ArgumentException("End date must be in the future.", nameof(endDate));
+            //if (endDate <= DateTimeOffset.UtcNow)
+            //    return;
 
             return new IdempotencyRecord
             {

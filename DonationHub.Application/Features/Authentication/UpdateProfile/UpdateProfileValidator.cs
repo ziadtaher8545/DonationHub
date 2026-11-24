@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DonationHub.Application.Features.Authentication.UpdateProfile
 {
-    internal class UpdateProfileValidator : AbstractValidator<UpdateProfileCommand>
+    public class UpdateProfileValidator : AbstractValidator<UpdateProfileCommand>
     {
         public UpdateProfileValidator()
         {

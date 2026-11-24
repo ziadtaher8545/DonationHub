@@ -1,4 +1,6 @@
 ﻿using DonationHub.Application.Interfaces;
+using DonationHub.Domain.Common.Errors;
+using DonationHub.Domain.Common.Results;
 using FluentValidation;
 using MediatR;
 using System;
@@ -8,7 +10,7 @@ using System.Text;
 
 namespace DonationHub.Application.Features.Admin.CreateStaff
 {
-    internal class CreateStaffHandler : IRequestHandler<CreateStaffCommand, bool>
+    internal class CreateStaffHandler : IRequestHandler<CreateStaffCommand, Result>
     {
         private readonly IIdentityService _identityService;
         private readonly IValidator<CreateStaffCommand> _validator;
@@ -19,17 +21,17 @@ namespace DonationHub.Application.Features.Admin.CreateStaff
             _validator = validator;
         }
 
-        public async Task<bool> Handle(CreateStaffCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(CreateStaffCommand request, CancellationToken cancellationToken)
         {
-            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+            //var validationResult = await _validator.ValidateAsync(request, cancellationToken);
 
-            if (!validationResult.IsValid)
-            {
-                // should result 
-                throw new ValidationException(validationResult.Errors);
-            }
+            //if (!validationResult.IsValid)
+            //{
+            //    return AuthErrors.InvalidCredentials;
+            //}
 
-            var result = await _identityService!.CreateRoleForUser(request.Email, request.Role, cancellationToken);
+            var result = await _identityService!.CreateStaffAsync(request, cancellationToken);
+
             return result;
         }
     }

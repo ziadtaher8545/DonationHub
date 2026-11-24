@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DonationHub.Application.Features.Authentication.RefreshToken
 {
-    internal class RefreshTokenValidator : AbstractValidator<RefreshTokenCommand>
+    public class RefreshTokenValidator : AbstractValidator<RefreshTokenCommand>
     {
         public RefreshTokenValidator()
         {

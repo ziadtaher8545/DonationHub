@@ -16,13 +16,10 @@ namespace DonationHub.Api.Controllers
 
         }
         [HttpPost("staff")]
-        public async Task<IActionResult> staff(CreateStaffCommand command)
+        public async Task<ActionResult> staff(CreateStaffCommand command)
         {
-            var result = await _imediator.Send(command);
-            if (!result)
-                return ValidationProblem();
-
-            return Ok(result);
+            var result = await _mediator.Send(command);
+            return ToActionResult(result);
         }
     }
 }

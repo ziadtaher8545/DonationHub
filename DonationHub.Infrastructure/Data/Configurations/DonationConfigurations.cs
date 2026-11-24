@@ -24,9 +24,9 @@ namespace DonationHub.Infrastructure.Data.Configurations
             builder.Ignore(d => d.UpdatedAt);
             //builder.Property(d => d.UpdatedAt).HasColumnName("EndDate");
 
-            builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(d => d.DonorUserId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne<ApplicationUser>().WithMany(u => u.Donations).HasForeignKey(d => d.DonorUserId).OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(d => d.Campaign).WithMany().HasForeignKey(d => d.CampaignId)
+            builder.HasOne(d => d.Campaign).WithMany(c => c.Donations).HasForeignKey(d => d.CampaignId)
                     .OnDelete(DeleteBehavior.Restrict);
         }
     }

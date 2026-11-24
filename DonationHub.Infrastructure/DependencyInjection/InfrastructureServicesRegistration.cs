@@ -1,5 +1,7 @@
 ﻿using DonationHub.Application.Common.Options;
 using DonationHub.Application.Interfaces;
+using DonationHub.Application.Interfaces.Rpositories;
+using DonationHub.Application.Interfaces.Services;
 using DonationHub.Infrastructure.Common.Interfaces;
 using DonationHub.Infrastructure.Data;
 using DonationHub.Infrastructure.Data.AppDBContext;
@@ -32,6 +34,9 @@ public static class InfrastructureServicesRegistration
         services.AddOptions<SeedAdminOptions>().BindConfiguration("SeedAdminOptions").ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<DonationOptions>().BindConfiguration("DonationOptions").ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<JwtOptions>().BindConfiguration("JwtOptions").ValidateDataAnnotations().ValidateOnStart();
+        services.AddOptions<SeedDonorOptions>().BindConfiguration("SeedDonorOptions").ValidateDataAnnotations().ValidateOnStart();
+        services.AddOptions<SeedManagerOptions>().BindConfiguration("SeedManagerOptions").ValidateDataAnnotations().ValidateOnStart();
+
 
 
         /// Identity
@@ -45,6 +50,7 @@ public static class InfrastructureServicesRegistration
 
         var jwtOptions = configuration.GetSection("JwtOptions").Get<JwtOptions>() ??
             throw new InvalidOperationException("JwtOptions section is missing in the configuration.");
+
         services.AddAuthentication(opt =>
         {
             opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -77,10 +83,11 @@ public static class InfrastructureServicesRegistration
 
         services.AddDbContext<DonationDBContext>(options =>
         {
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")).AddInterceptors(new SoftDeletableInterceptor());
+            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")).AddInterceptors(new SoftDeletableInterceptor(TimeProvider.System));
+
         });
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped(typeof(IGenericRepsitory<>), typeof(GenericRepository<>));
+        services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped(typeof(IDeletableRepository<>), typeof(DeletableRepository<>));
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<ITokenService, TokenService>();
@@ -88,6 +95,12 @@ public static class InfrastructureServicesRegistration
         services.AddKeyedScoped<IDataSeeder, DataSeeder>("Data");
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<ITokenRepository, TokenRepository>();
+        services.AddScoped<IDonationDbContext, DonationDBContext>();
+        services.AddScoped<ICampaignRepository, CampignRepository>();
+
+
+
+
 
 
         return services;

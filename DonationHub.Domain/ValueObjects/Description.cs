@@ -8,10 +8,16 @@ namespace DonationHub.Domain.ValueObjects
     {
         public string DescriptionAr { get; set; } = default!;
         public string DescriptionEn { get; set; } = default!;
-       public Description(string descriptionAr, string descriptionEn)
+        public Description(string descriptionAr, string descriptionEn)
         {
             DescriptionAr = descriptionAr;
             DescriptionEn = descriptionEn;
+        }
+        protected override IEnumerable<object> GetValues()
+        {
+
+            yield return DescriptionAr;
+            yield return DescriptionEn;
         }
     }
 }

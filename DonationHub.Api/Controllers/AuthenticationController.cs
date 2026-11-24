@@ -21,60 +21,52 @@ namespace DonationHub.Api.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterCommand command, CancellationToken ct)
+        public async Task<ActionResult> Register(RegisterCommand command, CancellationToken ct)
         {
-            var result = await _imediator.Send(command, ct);
-            //if (!result )
-            //    return 
-            return Ok(result);
+            var result = await _mediator.Send(command, ct);
+            return ToActionResult(result);
         }
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginCommand command, CancellationToken ct)
+        public async Task<ActionResult<UserDto>> Login(LoginCommand command, CancellationToken ct)
         {
-            var result = await _imediator.Send(command, ct);
-            if (result is null) return NotFound();
-            return Ok(result);
+            var result = await _mediator.Send(command, ct);
+            return ToActionResult(result);
         }
 
         [HttpGet("AuthMe"), Authorize]
 
-        public async Task<IActionResult> AuthMe()
+        public async Task<ActionResult<UserDataDto>> AuthMe()
         {
             var email = GetEmailByToken();
             var getUserQuery = new GetUserQuery(email);
-            var user = await _imediator.Send(getUserQuery);
-            if (user is null) return Unauthorized(user);
-            //Console.WriteLine(user.Email);
-            return Ok(user);
+            var user = await _mediator.Send(getUserQuery);
+            return ToActionResult(user);
         }
 
         [HttpPost("refresh")]
 
-        public async Task<IActionResult> Refresh(RefreshTokenCommand command, CancellationToken ct)
+        public async Task<ActionResult<string>> Refresh(RefreshTokenCommand command, CancellationToken ct)
         {
-            var result = await _imediator.Send(command, ct);
+            var result = await _mediator.Send(command, ct);
 
-            return Ok(result);
+            return ToActionResult(result);
         }
 
         // Bonus
         [HttpPut("ChangePaswword")]
 
-        public async Task<IActionResult> ChangePassword(ChangePasswordDto passwordDto, CancellationToken ct)
+        public async Task<ActionResult> ChangePassword(ChangePasswordDto passwordDto, CancellationToken ct)
         {
             var email = GetEmailByToken();
-            var result = await _imediator.Send(new ChangePasswordCommand(passwordDto.CurrentPassword, passwordDto.NewPassword, passwordDto.ConfirmedNewPassword, email));
-            return Ok(result);
+            var result = await _mediator.Send(new ChangePasswordCommand(passwordDto.CurrentPassword, passwordDto.NewPassword, passwordDto.ConfirmedNewPassword, email));
+            return ToActionResult(result);
         }
         [HttpPut("UpdateProfile"), Authorize]
-        public async Task<IActionResult> UpdateProfile(UpdateProfileCommand command, CancellationToken ct)
+        public async Task<ActionResult<UserDataDto>> UpdateProfile(UpdateProfileCommand command, CancellationToken ct)
         {
-            var result = await _imediator.Send(command, ct);
+            var result = await _mediator.Send(command, ct);
 
-            if (result is null)
-                return BadRequest(result);
-
-            return Ok(result);
+            return ToActionResult(result);
         }
 
 

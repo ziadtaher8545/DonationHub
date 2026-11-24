@@ -1,6 +1,10 @@
 <Solution>
+  <Project Path="DonationHub.Api.Tests/DonationHub.Api.Tests.csproj" Id="0bbb47b1-3ba8-4eef-8ff8-519949ab6d30" />
   <Project Path="DonationHub.Api/DonationHub.Api.csproj" />
+  <Project Path="DonationHub.Application.Tests/DonationHub.Application.Tests.csproj" Id="1caed1f4-da2e-4366-bcef-f0894f499878" />
   <Project Path="DonationHub.Application/DonationHub.Application.csproj" />
+  <Project Path="DonationHub.Domain.Tests/DonationHub.Domain.Tests.csproj" Id="3577f5d7-9b93-49f3-b4f9-baa431719667" />
   <Project Path="DonationHub.Domain/DonationHub.Domain.csproj" />
+  <Project Path="DonationHub.Infrastructure.Tests/DonationHub.Infrastructure.Tests.csproj" Id="0fdc5db1-d4dc-46ae-8435-8639d87ccda1" />
   <Project Path="DonationHub.Infrastructure/DonationHub.Infrastructure.csproj" />
 </Solution>

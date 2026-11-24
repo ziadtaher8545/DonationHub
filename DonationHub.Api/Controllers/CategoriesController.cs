@@ -10,55 +10,50 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DonationHub.Api.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class CategoriesController : BaseController
     {
         public CategoriesController(IMediator imediator) : base(imediator)
         {
         }
-        [HttpGet]
-        public async Task<IActionResult> GetCategories(CancellationToken ct)
+        [HttpGet, AllowAnonymous]
+
+        public async Task<ActionResult<List<CategoryDto>>> GetCategories(CancellationToken ct)
         {
-            var categories = await _imediator.Send(new GetAllCategoriesQuery(), ct);
-            return Ok(categories);
+            var categories = await _mediator.Send(new GetAllCategoriesQuery(), ct);
+            return ToActionResult(categories);
         }
-        [HttpGet("{id:guid}")]
+        [HttpGet("{id:guid}"), AllowAnonymous]
 
-        public async Task<IActionResult> GetCategory(Guid id, CancellationToken ct)
+        public async Task<ActionResult<CategoryDto>> GetCategory([FromRoute]Guid id, CancellationToken ct)
         {
-            var category = await _imediator.Send(new GetCategoryByIdQuery(id), ct);
-            if (category is null) return NotFound(); 
-            return Ok(category);
+            var category = await _mediator.Send(new GetCategoryByIdQuery(id), ct);
+            return ToActionResult(category);
         }
 
 
 
 
-        [HttpPost, Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateCategory(CreateCategoryCommand command, CancellationToken ct)
+        [HttpPost]
+        public async Task<ActionResult> CreateCategory(CreateCategoryCommand command, CancellationToken ct)
         {
-            var categoryId = await _imediator.Send(command, ct);
-            return Ok(categoryId);
+            var result = await _mediator.Send(command, ct);
+            return ToActionResult(result);
 
         }
-        [Authorize(Roles = "Admin"), HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] CategoryToUpdateDto request, CancellationToken ct)
+        [HttpPut("{id:guid}")]
+        public async Task<ActionResult<CategoryToUpdateDto>> UpdateCategory(Guid id, [FromBody] CategoryToUpdateDto request, CancellationToken ct)
         {
 
             var command = new UpdateCategoryCommand(id, request.Name, request.Description);
-            var result = await _imediator.Send(command, ct);
-            if (result == null)
-                return NotFound();
-
-            return Ok(result);
+            var result = await _mediator.Send(command, ct);
+            return ToActionResult(result);
         }
-        [Authorize(Roles = "Admin"), HttpDelete("{id:guid}")]
-        public async Task<IActionResult> DeleteCategory(Guid id, CancellationToken ct)
+        [HttpDelete("{id:guid}")]
+        public async Task<ActionResult> DeleteCategory(Guid id, CancellationToken ct)
         {
-            var resultDelete = await _imediator.Send(new DeleteCategoryCommand(id), ct);
-            // must be edited ___
-            if (!resultDelete)
-                return NotFound();
-            return Ok(resultDelete);
+            var resultDelete = await _mediator.Send(new DeleteCategoryCommand(id), ct);
+            return ToActionResult(resultDelete);
         }
 
 

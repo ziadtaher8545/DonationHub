@@ -12,6 +12,10 @@ namespace DonationHub.Infrastructure.Data.Configurations
         public void Configure(EntityTypeBuilder<PaymentAttempt> builder)
         {
             builder.Property(pa => pa.CreatedAt).HasDefaultValueSql("TODATETIMEOFFSET(SYSUTCDATETIME(), '+00:00')");
+            builder.HasOne(p => p.Donation)
+                    .WithMany()
+                    .HasForeignKey(p => p.DonationId)
+                    .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

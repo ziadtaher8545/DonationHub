@@ -1,5 +1,6 @@
 ﻿using DonationHub.Application.Dtos;
 using DonationHub.Application.Interfaces;
+using DonationHub.Domain.Common.Results;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Text;
 
 namespace DonationHub.Application.Features.Authentication.GetUser
 {
-    internal class GetUserHandler : IRequestHandler<GetUserQuery, UserDataDto>
+    internal class GetUserHandler : IRequestHandler<GetUserQuery, Result<UserDataDto>>
     {
         private readonly IIdentityService _identityService;
 
@@ -19,7 +20,7 @@ namespace DonationHub.Application.Features.Authentication.GetUser
 
 
 
-        public async Task<UserDataDto> Handle(GetUserQuery request, CancellationToken cancellationToken)
+        public async Task<Result<UserDataDto>> Handle(GetUserQuery request, CancellationToken cancellationToken)
         {
             var user = await _identityService.GetUserByEmailAsync(request.email, cancellationToken);
             return user;

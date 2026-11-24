@@ -1,4 +1,6 @@
 ﻿using DonationHub.Application.Interfaces;
+using DonationHub.Domain.Common.Errors;
+using DonationHub.Domain.Common.Results;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -6,7 +8,7 @@ using System.Text;
 
 namespace DonationHub.Application.Features.Authentication.ChangePassword
 {
-    internal class ChangePasswordHandler : IRequestHandler<ChangePasswordCommand, bool>
+    internal class ChangePasswordHandler : IRequestHandler<ChangePasswordCommand, Result>
     {
         private readonly IIdentityService _identityService;
 
@@ -17,12 +19,12 @@ namespace DonationHub.Application.Features.Authentication.ChangePassword
 
         }
 
-        public async Task<bool> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
         {
-            if (request.NewPassword != request.ConfirmNewPassword)
-                throw new ArgumentException("MisMatched Password");
+            //if (request.NewPassword != request.ConfirmNewPassword)
+            //    return AuthErrors.InvalidCredentials;
 
-            var userId = request.Email;
+            var email = request.Email;
 
             var result = await _identityService.ChangePasswordAsync(request.Email, request.CurrentPassword, request.NewPassword, cancellationToken);
             return result;

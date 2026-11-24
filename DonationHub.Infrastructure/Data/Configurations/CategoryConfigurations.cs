@@ -14,18 +14,22 @@ namespace DonationHub.Infrastructure.Data.Configurations
             builder.OwnsOne(c => c.Name, name =>
             {
                 name.Property(n => n.NameAr)
-                    //.HasColumnName("NameAr")
+                    .HasColumnName("NameAr")
                     .HasMaxLength(100)
                     .IsRequired();
                 name.Property(n => n.NameEn)
-                    //.HasColumnName("NameEn")
+                    .HasColumnName("NameEn")
                     .HasMaxLength(100)
                     .IsRequired();
-                name.HasIndex(n => new
-                {
-                    n.NameAr,
-                    n.NameEn
-                }).IsUnique();
+
+                name.HasIndex(n => n.NameAr).IsUnique().HasFilter("[IsDeleted] = 0");
+                name.HasIndex(n => n.NameEn).IsUnique().HasFilter("[IsDeleted] = 0");
+
+                //name.HasIndex(n => new
+                //{
+                //    n.NameAr,
+                //    n.NameEn
+                //}).IsUnique();
             });
             builder.OwnsOne(c => c.Description, description =>
             {
@@ -44,6 +48,8 @@ namespace DonationHub.Infrastructure.Data.Configurations
                 .HasDefaultValueSql("TODATETIMEOFFSET(Sysutcdatetime(), '+00:00')");
 
             //builder.HasIndex(c => c.Name).IsUnique();
+            builder.Property(c => c.IsDeleted).HasDefaultValue(false);
+            builder.HasQueryFilter(c => !c.IsDeleted);
 
 
         }

@@ -5,7 +5,7 @@ using FluentValidation;
 
 namespace DonationHub.Application.Features.Authentication.Register
 {
-    internal class RegisterValidator : AbstractValidator<RegisterCommand>
+    public class RegisterValidator : AbstractValidator<RegisterCommand>
     {
         public RegisterValidator()
         {

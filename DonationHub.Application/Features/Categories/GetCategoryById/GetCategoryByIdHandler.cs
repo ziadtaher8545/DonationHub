@@ -1,24 +1,28 @@
 ﻿using DonationHub.Application.Dtos;
 using DonationHub.Application.Interfaces;
+using DonationHub.Domain.Common.Errors;
+using DonationHub.Domain.Common.Results;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace DonationHub.Application.Features.Categories.GetCategoryById
 {
-    internal class GetCategoryByIdHandler : IRequestHandler<GetCategoryByIdQuery, CategoryDto>
+    internal class GetCategoryByIdHandler : IRequestHandler<GetCategoryByIdQuery, Result<CategoryDto>>
     {
-        private readonly IGenericRepsitory<Domain.Entities.Category> _categoryRepository;
-        public GetCategoryByIdHandler(IGenericRepsitory<Domain.Entities.Category> categoryRepository)
+        private readonly IDonationDbContext _context;
+        public GetCategoryByIdHandler(IDonationDbContext context)
         {
-            _categoryRepository = categoryRepository;
+            _context = context;
         }
 
-        public async Task<CategoryDto> Handle(GetCategoryByIdQuery request, CancellationToken cancellationToken)
+        public async Task<Result<CategoryDto>> Handle(GetCategoryByIdQuery request, CancellationToken cancellationToken)
         {
-            var category = await _categoryRepository.GetByIdAsync(request.Id, cancellationToken);
-            if (category == null) return null;
+            var categories = await _context.Categories.AsNoTracking().ToListAsync(cancellationToken);
+            var category = categories.FirstOrDefault(c => c.Id == request.Id);
+            if (category == null) return CategoryErrors.NotFound;
             return new CategoryDto() { Id = category.Id, Name = category.Name, Description = category.Description };
         }
     }

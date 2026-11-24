@@ -1,4 +1,6 @@
-﻿using DonationHub.Domain.Enums;
+﻿using DonationHub.Domain.Common.Errors;
+using DonationHub.Domain.Common.Results;
+using DonationHub.Domain.Enums;
 using DonationHub.Domain.ValueObjects;
 using System;
 using System.Collections.Generic;
@@ -23,15 +25,14 @@ namespace DonationHub.Domain.Entities
         public DateTimeOffset EndDate { get; private set; }
 
 
-        public static Donation Create(Money amount, string? failureReason, string? receiptNumber, string? receiptFileName, Guid campaignId, Guid donorUserId, decimal maxAmount, decimal minAmount, DateTimeOffset endDate)
+        public static Result<Donation> Create(Money amount, string? failureReason, string? receiptNumber, string? receiptFileName, Guid campaignId, Guid donorUserId, decimal maxAmount, decimal minAmount, DateTimeOffset endDate)
         {
             if (amount.Amount < minAmount || amount.Amount > maxAmount)
             {
-                throw new ArgumentException($"Donation amount must be between {minAmount} and {maxAmount}.", nameof(amount));
+                return DonationErrors.AmountOutOfRange;
             }
             if (endDate <= DateTimeOffset.UtcNow)
-                throw new ArgumentException("End date must be in the future.", nameof(endDate));
-
+                return DonationErrors.InvalidState;
             return new Donation
             {
 

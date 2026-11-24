@@ -1,0 +1,13 @@
+﻿using DonationHub.Application.Dtos;
+using DonationHub.Domain.Common.Results;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace DonationHub.Application.Features.Campaigns.UpdateCampaign
+{
+    public record UpdateCampaignCommand(Guid Id, string TitleEn, string TitleAr, string DescriptionEn, string DescriptionAr, decimal GoalAmount, string Currency, DateTimeOffset EndDate, string? BannerFileName, string RowVersion) : IRequest<Result<CampaignFullDto>>
+    {
+    }
+}

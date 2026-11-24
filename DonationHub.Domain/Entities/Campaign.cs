@@ -1,15 +1,15 @@
-﻿using DonationHub.Domain.Enums;
+﻿
+using DonationHub.Domain.Common.Errors;
+using DonationHub.Domain.Common.Results;
+using DonationHub.Domain.Enums;
 using DonationHub.Domain.Interfaces;
 using DonationHub.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace DonationHub.Domain.Entities
 {
     public class Campaign : BaseEntity, ISoftDeletable
     {
-        public Title Titlle { get; private set; }
+        public Title Title { get; private set; }
         public Description? Description { get; private set; }
         public Money GoalAmount { get; private set; }
         public Money RaiseAmount { get; private set; }
@@ -20,30 +20,51 @@ namespace DonationHub.Domain.Entities
 
         public byte[] RowVersion { get; private set; } = [];
 
-
-
-
         public Guid CategoryId { get; private set; }
         public Category Category { get; private set; }
 
         public Guid CreatedByUserId { get; private set; }
-        public bool IsDeleted { get;  set; }
 
-        public DateTimeOffset? DeletedAt { get;  set; }
+        public bool IsDeleted { get; set; }
+        public DateTimeOffset? DeletedAt { get; set; }
+        public ICollection<Donation> Donations { get; set; }
 
-        public static Campaign Create(Title title, Description? description, Money goalAmount, DateTimeOffset endDate, string? bannerFileName, Guid categoryId, Guid createdByUserId)
+        // calculaction Properties 
+        public int ProgressPrecent
         {
+            get => Math.Min(100, (int)decimal.Round(RaiseAmount.Amount / GoalAmount.Amount * 100));
+        }
 
-            if (endDate <= DateTimeOffset.UtcNow)
-            {
-                throw new ArgumentException("End date must be in the future.", nameof(endDate));
-            }
+        public int DaysLeft { get => GetDaysLeft(TimeProvider.System); }
+
+        private int GetDaysLeft(TimeProvider timeProvider)
+        {
+            return Math.Max(0, (int)Math.Ceiling((EndDate - timeProvider.GetUtcNow()).TotalDays));
+        }
+
+
+        //private Campaign() { }
+
+        public static Result<Campaign> Create(Title title, Description? description, Money goalAmount, DateTimeOffset endDate, string? bannerFileName, Guid categoryId, Guid createdByUserId, DateTimeOffset now)
+        {
+            if (goalAmount.Amount <= 0)
+                return CampaignErrors.InvalidGoalAmount;
+
+            if (endDate <= now)
+                return CampaignErrors.EndDateInPast;
+
+            if (categoryId == Guid.Empty || createdByUserId == Guid.Empty)
+                return CampaignErrors.NotFound;
+
+            var resultMoney = Money.Create(0);
+            if (!resultMoney.IsSuccess)
+                return resultMoney.Error;
             return new Campaign
             {
-                Titlle = title,
+                Title = title,
                 Description = description,
                 GoalAmount = goalAmount,
-                RaiseAmount = new Money(0),
+                RaiseAmount = resultMoney.Data!,
                 EndDate = endDate,
                 BannerFileName = bannerFileName,
                 Status = CampaignStatus.Active,
@@ -51,69 +72,131 @@ namespace DonationHub.Domain.Entities
                 CreatedByUserId = createdByUserId
             };
         }
-        public void ChangeEndDate(DateTimeOffset newEndDate)
+
+        public Result ChangeEndDate(DateTimeOffset newEndDate, DateTimeOffset now)
         {
-            if (newEndDate <= DateTimeOffset.UtcNow)
-            {
-                throw new ArgumentException("End date must be in the future.", nameof(newEndDate));
-            }
+            if (Status != CampaignStatus.Active)
+                return CampaignErrors.NotActive;
+
+            if (newEndDate <= now)
+                return CampaignErrors.EndDateInPast;
+
             EndDate = newEndDate;
-            UpdatedAt = DateTimeOffset.UtcNow;
-        }
-        public void EnshureAcceptingDonation()
-        {
-            if (Status != CampaignStatus.Active || EndDate <= DateTimeOffset.UtcNow)
-            {
-                throw new InvalidOperationException("Campaign is not accepting donations.");
+            UpdatedAt = now;
 
-            }
+            return Result.Ok();
         }
 
-        public void ChangeGoalAmount(Money newGoalAmount)
+        public Result EnsureAcceptingDonation(DateTimeOffset now)
         {
+            if (Status != CampaignStatus.Active)
+                return CampaignErrors.NotActive;
+
+            if (EndDate <= now)
+                return CampaignErrors.EndDateInPast;
+
+            return Result.Ok();
+        }
+
+        public Result ChangeGoalAmount(Money newGoalAmount, DateTimeOffset now)
+        {
+            if (Status != CampaignStatus.Active)
+                return CampaignErrors.NotActive;
+
             if (newGoalAmount.Amount <= 0)
-            {
-                throw new ArgumentException("Goal amount must be greater than zero.", nameof(newGoalAmount));
-            }
+                return CampaignErrors.InvalidGoalAmount;
+
             if (newGoalAmount.Amount < RaiseAmount.Amount)
-            {
-                throw new ArgumentException("New goal amount cannot be less than the raised amount.", nameof(newGoalAmount));
-            }
+                return CampaignErrors.GoalBelowRaised;
+
             GoalAmount = newGoalAmount;
-            UpdatedAt = DateTimeOffset.UtcNow;
+            UpdatedAt = now;
+
+            return Result.Ok();
         }
 
-
-        public void UpdateRaiseAmount(Money newRaiseAmount)
+        public Result UpdateRaiseAmount(Money newRaiseAmount, DateTimeOffset now)
         {
-            if (newRaiseAmount.Amount < 0)
+            if (Status != CampaignStatus.Active)
+                return CampaignErrors.NotActive;
+            if (newRaiseAmount.Amount <= 0)
             {
-                throw new ArgumentException("Raise amount cannot be negative.", nameof(newRaiseAmount));
+                return CampaignErrors.InvalidRaiseAmount;
             }
-            if (newRaiseAmount.Amount > GoalAmount.Amount)
-            {
-                throw new ArgumentException("Raise amount cannot exceed the goal amount.", nameof(newRaiseAmount));
-            }
+            if (RaiseAmount.Amount >= GoalAmount.Amount)
+                return CampaignErrors.GoalBelowRaised;
+
 
             RaiseAmount = newRaiseAmount;
-            UpdatedAt = DateTimeOffset.UtcNow;
+            UpdatedAt = now;
+
             if (RaiseAmount.Amount >= GoalAmount.Amount)
             {
                 Status = CampaignStatus.Completed;
             }
+
+            return Result.Ok();
         }
 
-        public void Delete()
+        public void Delete(DateTimeOffset now)
         {
             IsDeleted = true;
-            DeletedAt = DateTimeOffset.UtcNow;
+            DeletedAt = now;
+            UpdatedAt = now;
         }
 
-        public void Restore()
+        public void Restore(DateTimeOffset now)
         {
             IsDeleted = false;
             DeletedAt = null;
+            UpdatedAt = now;
+        }
+
+
+        public Result Update(Title title, Description description, Money goalAmount, DateTimeOffset endDate, DateTimeOffset now)
+        {
+            if (Status != CampaignStatus.Active)
+                return CampaignErrors.NotActive;
+
+            if (endDate <= now)
+                return CampaignErrors.EndDateInPast;
+
+            if (goalAmount.Currency != GoalAmount.Currency)
+                return CampaignErrors.InvalidGoalAmount;
+
+            if (goalAmount.Amount < RaiseAmount.Amount)
+                return CampaignErrors.GoalBelowRaised;
+
+            Title = title;
+            Description = description;
+            GoalAmount = goalAmount;
+            EndDate = endDate;
+            return Result.Ok();
+        }
+
+        public void Expire(DateTimeOffset now)
+        {
+            UpdatedAt = now;
+            Status = CampaignStatus.Expired;
+        }
+
+
+
+        public Result Cancel(DateTimeOffset now)
+        {
+            if (Status == CampaignStatus.Completed)
+                return CampaignErrors.CannotCancelCompleted;
+
+            if (Status == CampaignStatus.Expired)
+                return CampaignErrors.CannotCancelExpired;
+
+            if (Status == CampaignStatus.Cancelled)
+                return CampaignErrors.AlreadyCancelled;
+
+            Status = CampaignStatus.Cancelled;
+            UpdatedAt = now;
+
+            return Result.Ok();
         }
     }
-
 }

@@ -14,5 +14,11 @@ namespace DonationHub.Domain.ValueObjects
             NameAr = nameAr;
             NameEn = nameEn;
         }
+        protected override IEnumerable<object> GetValues()
+        {
+            yield return NameAr;
+            yield return NameEn;
+
+        }
     }
 }

@@ -13,15 +13,16 @@ namespace DonationHub.Domain.Entities
         public string? FailureCode { get; private set; }
 
 
-        public string DonationId { get; private set; }
+        public Guid DonationId { get; private set; }
         public Donation Donation { get; private set; }
 
 
         // Payment
         public string? PaymenStripePaymentIntentId { get; private set; }
         public string StripeCheckoutSessionId { get; private set; }
-        public static PaymentAttempt Create(decimal amount, PaymentAttemptStatus status, string? failureCode, string donationId, string? paymenStripePaymentIntentId, string stripeCheckoutSessionId)
+        public static PaymentAttempt Create(decimal amount, PaymentAttemptStatus status, string? failureCode, Guid donationId, string? paymenStripePaymentIntentId, string stripeCheckoutSessionId)
         {
+            
             return new PaymentAttempt
             {
                 Amount = amount,

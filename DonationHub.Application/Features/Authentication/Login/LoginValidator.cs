@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DonationHub.Application.Features.Authentication.Login
 {
-    internal class LoginValidator : AbstractValidator<LoginCommand>
+    public class LoginValidator : AbstractValidator<LoginCommand>
     {
         public LoginValidator()
         {

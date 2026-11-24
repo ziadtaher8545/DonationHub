@@ -1,45 +1,58 @@
-﻿using DonationHub.Domain.Interfaces;
+﻿
+using DonationHub.Domain.Interfaces;
+using DonationHub.Infrastructure.Data.AppDBContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace DonationHub.Infrastructure.Data.Interceptors
+namespace DonationHub.Infrastructure.Data.Interceptors;
+
+internal class SoftDeletableInterceptor : SaveChangesInterceptor
 {
-    internal class SoftDeletableInterceptor : SaveChangesInterceptor
+    private readonly TimeProvider _timeProvider;
+
+    public SoftDeletableInterceptor(TimeProvider timeProvider)
     {
-        public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
+        _timeProvider = timeProvider;
+    }
+
+
+    private void ApplySoftDelete(DbContext? context)
+    {
+        if (context is null) return;
+
+        var now = _timeProvider.GetUtcNow();
+
+        foreach (var entry in context.ChangeTracker.Entries<ISoftDeletable>()
+                                     .Where(e => e.State == EntityState.Deleted)
+                                     .ToList())
         {
+            entry.State = EntityState.Modified;
+            entry.Entity.Delete(now);
 
-            var context = eventData.Context;
-            if (context is null)
-                return base.SavingChanges(eventData, result);
-            foreach (var entry in context.ChangeTracker.Entries())
+            foreach (var reference in entry.References)
             {
-                if (entry is null || entry is not { State: EntityState.Deleted, Entity: ISoftDeletable entity })
-                    continue;
-                entry.State = EntityState.Modified;
-                entity.Delete();
+                if (reference.TargetEntry?.Metadata.IsOwned() == true)
+                    reference.TargetEntry.State = EntityState.Unchanged;
             }
-            return base.SavingChanges(eventData, result);
-
         }
-        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
-        {
-            var context = eventData.Context;
-            if (context is null)
-                return base.SavingChangesAsync(eventData, result, cancellationToken);
-            foreach (var entry in context.ChangeTracker.Entries())
-            {
-                if (entry is null || entry is not { State: EntityState.Deleted, Entity: ISoftDeletable entity })
-                    continue;
-                entry.State = EntityState.Modified;
-                entity.Delete();
-            }
-            return base.SavingChangesAsync(eventData, result, cancellationToken);
-        }
+    }
 
+    public override InterceptionResult<int> SavingChanges(
+        DbContextEventData eventData,
+        InterceptionResult<int> result)
+    {
+        ApplySoftDelete(eventData.Context);
 
+        return base.SavingChanges(eventData, result);
+    }
+
+    public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
+        DbContextEventData eventData,
+        InterceptionResult<int> result,
+        CancellationToken cancellationToken = default)
+    {
+        ApplySoftDelete(eventData.Context);
+
+        return await base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 }
